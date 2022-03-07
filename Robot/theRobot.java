@@ -520,6 +520,7 @@ public class theRobot extends JFrame {
         }
 
         final double sensorWeight = 0.002;
+        final double SUBTRACT_VAL = 0.01;
 
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
@@ -528,22 +529,33 @@ public class theRobot extends JFrame {
                     if (j != 0 && mundo.grid[i][j-1] == 1) {
                         totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
                     }
+                    else if (totalProb > SUBTRACT_VAL) {
+                        totalProb -= SUBTRACT_VAL;
+                    } 
                 }
                 else if (s) {
                     if (j < mundo.height-1 && mundo.grid[i][j+1] == 1) {
                         totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
                     }
+                    else if (totalProb > SUBTRACT_VAL) {
+                        totalProb -= SUBTRACT_VAL;
+                    } 
                 }
                 else if (w) {
                     if (i != 0 && mundo.grid[i-1][j] == 1) {
                         totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
                     }
-
+                    else if (totalProb > SUBTRACT_VAL) {
+                        totalProb -= SUBTRACT_VAL;
+                    } 
                 }
                 else if (e) {
                     if (i < mundo.width-1 && mundo.grid[i+1][j] == 1) {
                         totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
                     }
+                    else if (totalProb > SUBTRACT_VAL) {
+                        totalProb -= SUBTRACT_VAL;
+                    } 
                 }
 
                 newProbs[i][j] = totalProb;
