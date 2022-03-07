@@ -88,7 +88,7 @@ public class BayesWorld extends JFrame {
     static MyCanvas canvas;
     World mundo;
     int xpos, ypos;
-    double moveProb, sensorAccuracy;
+    static double moveProb, sensorAccuracy;
     
     ServerSocket serverSocket;
     Socket clientSocket;

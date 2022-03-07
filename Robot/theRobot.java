@@ -1,4 +1,3 @@
-
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Color;
@@ -11,7 +10,6 @@ import java.io.*;
 import java.util.Random;
 import java.util.Scanner;
 import java.net.*;
-
 
 // This class draws the probability map and value iteration map that you create to the window
 // You need only call updateProbs() and updateValues() from your theRobot class to update these maps
@@ -408,9 +406,169 @@ public class theRobot extends JFrame {
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
         // your code
+        // probs[X][Y]          // Bel(X_t - 1)
+        double[][] tmpProbs;    // Bel'(x_t)
+        tmpProbs = new double[mundo.width][mundo.height];
+        double[][] newProbs;    // Bel (X_t)
+        newProbs = new double[mundo.width][mundo.height];
 
+        char north = sonars.charAt(0);
+        boolean n = false;
+        if (north == '1') {
+            n = true;
+        }
+        char south = sonars.charAt(1);
+        boolean s = false;
+        if (south == '1') {
+            s = true;
+        }
+        char east = sonars.charAt(2);
+        boolean e = false;
+        if (east == '1') {
+            e = true;
+        }
+        char west = sonars.charAt(3);
+        boolean w = false;
+        if (west == '1') {
+            w = true;
+        }
+
+        // FIXME: get the real values
+        double moveProb = 0.9;
+        double sensorProb = 0.8;
+
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                double totalProb = 0;
+
+                // check for wall in current location
+                if (mundo.grid[i][j] == 1) {
+                    tmpProbs[i][j] = 0;
+                    continue;
+                }
+
+
+                switch (action) {
+                    // Up = 0
+                    case 0:
+                        if (j < mundo.height-1)
+                            totalProb += moveProb * probs[i][j+1];
+                        if (i != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i-1][j];
+                        if (i < mundo.width-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i+1][j];
+                        if (j != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j-1];
+                        totalProb += ((1 - moveProb)/4) * probs[i][j];
+                        break;
+                    
+                    // Down = 1
+                    case 1:
+                        if (j != 0)
+                            totalProb += moveProb * probs[i][j-1];
+                        if (i != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i-1][j];
+                        if (i < mundo.width-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i+1][j];
+                        if (j < mundo.height-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j+1];
+                        totalProb += ((1 - moveProb)/4) * probs[i][j];
+                        break;
+                    
+                    // Right = 2
+                    case 2:
+                        if (i != 0)
+                            totalProb += moveProb * probs[i-1][j];
+                        if (i < mundo.width-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i+1][j];
+                        if (j < mundo.height-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j+1];
+                        if (j != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j-1];
+                        totalProb += ((1 - moveProb)/4) * probs[i][j];
+                        break;
+
+                    // Left = 3
+                    case 3:
+                        if (i < mundo.width-1)
+                            totalProb += moveProb * probs[i+1][j];
+                        if (i != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i-1][j];
+                        if (j < mundo.height-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j+1];
+                        if (j != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j-1];
+                        totalProb += ((1 - moveProb)/4) * probs[i][j];
+                        break;
+
+                    // Stay = 4
+                    case 4:
+                        totalProb += moveProb * probs[i][j];
+                        if (i < mundo.width-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i+1][j];
+                        if (i != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i-1][j];
+                        if (j < mundo.height-1)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j+1];
+                        if (j != 0)
+                            totalProb += ((1 - moveProb)/4) * probs[i][j-1];
+                        break;
+                }
+
+                tmpProbs[i][j] = totalProb;
+            }
+        }
+
+        final double sensorWeight = 0.002;
+
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                double totalProb = tmpProbs[i][j];
+                if (n) {
+                    if (j != 0 && mundo.grid[i][j-1] == 1) {
+                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                    }
+                }
+                else if (s) {
+                    if (j < mundo.height-1 && mundo.grid[i][j+1] == 1) {
+                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                    }
+                }
+                else if (w) {
+                    if (i != 0 && mundo.grid[i-1][j] == 1) {
+                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                    }
+
+                }
+                else if (e) {
+                    if (i < mundo.width-1 && mundo.grid[i+1][j] == 1) {
+                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                    }
+                }
+
+                newProbs[i][j] = totalProb;
+            }
+        }
+        
+        probs = newProbs;
+
+        normalize();
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
+    }
+    
+    void normalize() {
+        double total = 0;
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                total += probs[i][j];
+            }
+        }
+        for (int i = 0; i < mundo.width; i++) {
+            for (int j = 0; j < mundo.height; j++) {
+                probs[i][j] = probs[i][j]/total;
+            }
+        }
     }
     
     // This is the function you'd need to write to make the robot move using your AI;
