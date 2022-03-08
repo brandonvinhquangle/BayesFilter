@@ -433,20 +433,17 @@ public class theRobot extends JFrame {
             w = true;
         }
 
-        // FIXME: get the real values
-        double moveProb = 0.9;
-        double sensorProb = 0.8;
+        double sensorProb = sensorAccuracy;
 
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 double totalProb = 0;
 
                 // check for wall in current location
-                if (mundo.grid[i][j] == 1) {
+                if (mundo.grid[i][j] > 0) {
                     tmpProbs[i][j] = 0;
                     continue;
                 }
-
 
                 switch (action) {
                     // Up = 0
@@ -519,43 +516,77 @@ public class theRobot extends JFrame {
             }
         }
 
-        final double sensorWeight = 0.002;
-        final double SUBTRACT_VAL = 0.01;
+        double sensorIncorrect = 1 - sensorProb;
 
         for (int i = 0; i < mundo.width; i++) {
             for (int j = 0; j < mundo.height; j++) {
                 double totalProb = tmpProbs[i][j];
                 if (n) {
                     if (j != 0 && mundo.grid[i][j-1] == 1) {
-                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                        totalProb *= sensorProb;
                     }
-                    else if (totalProb > SUBTRACT_VAL) {
-                        totalProb -= SUBTRACT_VAL;
-                    } 
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
                 }
-                else if (s) {
+                else {
+                    if (j != 0 && mundo.grid[i][j-1] != 1) {
+                        totalProb *= sensorProb;
+                    }
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
+                }
+                
+                if (s) {
                     if (j < mundo.height-1 && mundo.grid[i][j+1] == 1) {
-                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                        totalProb *= sensorProb;
                     }
-                    else if (totalProb > SUBTRACT_VAL) {
-                        totalProb -= SUBTRACT_VAL;
-                    } 
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
                 }
-                else if (w) {
+                else {
+                    if (j < mundo.height-1 && mundo.grid[i][j+1] != 1) {
+                        totalProb *= sensorProb;
+                    }
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
+                }
+                
+                if (w) {
                     if (i != 0 && mundo.grid[i-1][j] == 1) {
-                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                        totalProb *= sensorProb;
                     }
-                    else if (totalProb > SUBTRACT_VAL) {
-                        totalProb -= SUBTRACT_VAL;
-                    } 
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
+                } 
+                else {
+                    if (i != 0 && mundo.grid[i-1][j] != 1) {
+                        totalProb *= sensorProb;
+                    }
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
                 }
-                else if (e) {
+                
+                if (e) {
                     if (i < mundo.width-1 && mundo.grid[i+1][j] == 1) {
-                        totalProb += sensorProb * tmpProbs[i][j] + sensorWeight;
+                        totalProb *= sensorProb;
                     }
-                    else if (totalProb > SUBTRACT_VAL) {
-                        totalProb -= SUBTRACT_VAL;
-                    } 
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
+                }
+                else {
+                    if (i < mundo.width-1 && mundo.grid[i+1][j] != 1) {
+                        totalProb *= sensorProb;
+                    }
+                    else {
+                        totalProb *= sensorIncorrect;
+                    }
                 }
 
                 newProbs[i][j] = totalProb;
